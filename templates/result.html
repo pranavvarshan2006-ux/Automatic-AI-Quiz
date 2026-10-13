@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz Results</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f4f8; color: #1e293b; margin: 0; padding: 25px 15px; }
+    main { max-width: 800px; margin: 30px auto; }
+    .card { background: white; padding: 24px; margin-bottom: 18px; border-radius: 12px; box-shadow: 0 4px 15px #0000000d; }
+    h1 { color: #2563eb; }
+    .score, .correct { color: #167443; font-weight: bold; }
+    .incorrect { color: #d93025; font-weight: bold; }
+    .explanation { padding: 12px; background: #f5f7fa; border-radius: 8px; line-height: 1.5; }
+    a { display: block; padding: 14px; border-radius: 8px; background: #2563eb; color: white; text-align: center; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>Quiz Results: {{ topic }}</h1>
+      <p class="score">Score: {{ score }} / {{ results|length }}</p>
+    </section>
+
+    {% for item in results %}
+      <section class="card">
+        <h3>{{ loop.index }}. {{ item.question }}</h3>
+        <p>Your answer: {{ item.selected }}</p>
+        <p>Correct answer: {{ item.answer }}</p>
+        <p class="{{ 'correct' if item.correct else 'incorrect' }}">
+          {{ 'Correct!' if item.correct else 'Incorrect.' }}
+        </p>
+        <div class="explanation">{{ item.explanation }}</div>
+      </section>
+    {% endfor %}
+
+    <a href="{{ url_for('home') }}">Create another quiz</a>
+  </main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ topic }} Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f4f8; color: #1e293b; margin: 0; padding: 25px 15px; }
+    main { max-width: 800px; margin: 30px auto; }
+    .card { background: white; padding: 24px; margin-bottom: 18px; border-radius: 12px; box-shadow: 0 4px 15px #0000000d; }
+    h1 { color: #2563eb; }
+    .option { display: flex; gap: 10px; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; }
+    button { width: 100%; padding: 14px; border: 0; border-radius: 8px; background: #2563eb; color: white; font-size: 17px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>{{ topic }} Quiz</h1>
+      <p>Choose one answer for each question.</p>
+    </section>
+
+    <form method="post" action="{{ url_for('submit') }}">
+      {% for question in questions %}
+        <section class="card">
+          <h3>{{ loop.index }}. {{ question.question }}</h3>
+          {% for option in question.options %}
+            <label class="option">
+              <input type="radio" name="question_{{ loop.index0 }}"
+                     value="{{ option }}" required>
+              {{ option }}
+            </label>
+          {% endfor %}
+        </section>
+      {% endfor %}
+      <button type="submit">Submit Quiz</button>
+    </form>
+  </main>
+</body>
+</html>

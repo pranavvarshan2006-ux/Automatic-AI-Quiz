@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Automatic AI Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f4f8; color: #1e293b; margin: 0; padding: 25px 15px; }
+    main { max-width: 650px; margin: 50px auto; }
+    .card { background: white; padding: 28px; border-radius: 12px; box-shadow: 0 4px 15px #0000000d; }
+    h1 { text-align: center; color: #2563eb; }
+    p { color: #64748b; line-height: 1.6; }
+    label { display: block; margin: 18px 0 8px; font-weight: bold; }
+    input, select { box-sizing: border-box; width: 100%; padding: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+    button { width: 100%; margin-top: 22px; padding: 14px; border: 0; border-radius: 8px; background: #2563eb; color: white; font-size: 17px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    .error { padding: 12px; background: #fee2e2; color: #991b1b; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>Automatic AI Quiz</h1>
+      <p>Enter any topic and generate a multiple-choice quiz.</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <p class="error">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="post">
+        <label for="topic">Quiz topic</label>
+        <input id="topic" name="topic" type="text" maxlength="200"
+               placeholder="For example: Python, planets, or World War II" required>
+
+        <label for="count">Number of questions</label>
+        <select id="count" name="count">
+          <option value="5">5 questions</option>
+          <option value="10">10 questions</option>
+        </select>
+
+        <button type="submit">Generate Quiz</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

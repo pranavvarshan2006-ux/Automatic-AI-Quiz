@@ -9,3 +9,11 @@ dist/
 build/
 dist/
 *.exe
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.exe
