@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quiz Generator</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 35px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .features {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 8px;
+            line-height: 1.8;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 25px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <h1>AI Quiz Generator</h1>
+
+        <p class="subtitle">
+            Generate multiple-choice quizzes, test your knowledge,
+            and check your score instantly.
+        </p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('quiz') }}" method="POST">
+            <label for="topic">Enter Quiz Topic</label>
+
+            <input
+                type="text"
+                id="topic"
+                name="topic"
+                placeholder="Example: Python Programming"
+                maxlength="100"
+                required
+            >
+
+            <label for="count">Number of Questions</label>
+
+            <select id="count" name="count">
+                <option value="5">5 Questions</option>
+                <option value="10">10 Questions</option>
+            </select>
+
+            <button type="submit">Generate Quiz</button>
+        </form>
+
+        <div class="features">
+            <strong>Features</strong>
+            <ul>
+                <li>AI-generated questions when API access is configured</li>
+                <li>Sample questions when AI is unavailable</li>
+                <li>Automatic score calculation</li>
+                <li>Instant answer review</li>
+            </ul>
+        </div>
+
+        <footer>
+            Python Programming Internship Project
+        </footer>
+    </main>
+</body>
+</html>
