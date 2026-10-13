@@ -8,12 +8,13 @@ from openai import OpenAI
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "local-only-change-this-secret")
+app.secret_key = os.getenv("SECRET_KEY", "local-development-key-change-me")
+
 
 def generate_questions(topic, count):
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
-        raise RuntimeError("The OPENAI_API_KEY environment variable is not set.")
+        raise RuntimeError("OPENAI_API_KEY is not configured.")
 
     client = OpenAI(api_key=api_key)
     model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -21,19 +22,13 @@ def generate_questions(topic, count):
     prompt = f"""
 Create exactly {count} multiple-choice quiz questions about: {topic}
 
-Return only a JSON object in this format:
-{{
-  "questions": [
-    {{
-      "question": "Question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "The exact text of the correct option",
-      "explanation": "Brief explanation"
-    }}
-  ]
-}}
+Return a JSON object with a "questions" array. Each question must contain:
+- "question": question text
+- "options": exactly four distinct options
+- "answer": exact text of the correct option
+- "explanation": a brief explanation
 
-Use four distinct options per question. Ensure the answer exactly matches one option.
+The answer must exactly match one of the four options.
 """
 
     response = client.chat.completions.create(
@@ -45,30 +40,43 @@ Use four distinct options per question. Ensure the answer exactly matches one op
         response_format={"type": "json_object"},
     )
 
-    data = json.loads(response.choices[0].message.content)
-    questions = data.get("questions", [])
+    content = response.choices[0].message.content
+    if not content:
+        raise ValueError("The AI returned an empty response.")
 
-    if len(questions) != count:
-        raise ValueError("The AI did not return the requested number of questions.")
+    data = json.loads(content)
+    questions = data.get("questions")
+
+    if not isinstance(questions, list) or len(questions) != count:
+        raise ValueError("The AI returned an unexpected number of questions.")
 
     validated = []
+
     for item in questions:
-        question = str(item.get("question", "")).strip()
-        options = item.get("options", [])
+        if not isinstance(item, dict):
+            raise ValueError("The AI returned an invalid question.")
+
+        question_text = str(item.get("question", "")).strip()
+        raw_options = item.get("options", [])
         answer = str(item.get("answer", "")).strip()
         explanation = str(item.get("explanation", "")).strip()
 
+        if not isinstance(raw_options, list) or len(raw_options) != 4:
+            raise ValueError("Each question must have four options.")
+
+        options = [str(option).strip() for option in raw_options]
+
         if (
-            not question
-            or not isinstance(options, list)
-            or len(options) != 4
+            not question_text
+            or any(not option for option in options)
+            or len(set(options)) != 4
             or answer not in options
         ):
             raise ValueError("The AI returned an invalid question.")
 
         validated.append({
-            "question": question,
-            "options": [str(option) for option in options],
+            "question": question_text,
+            "options": options,
             "answer": answer,
             "explanation": explanation,
         })
@@ -78,42 +86,50 @@ Use four distinct options per question. Ensure the answer exactly matches one op
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    if request.method == "POST":
-        topic = request.form.get("topic", "").strip()
+    if request.method == "GET":
+        return render_template("index.html")
 
-        try:
-            count = int(request.form.get("count", "5"))
-        except ValueError:
-            count = 5
+    topic = request.form.get("topic", "").strip()
 
-        if not topic:
-            flash("Enter a quiz topic.")
-            return render_template("index.html")
+    try:
+        count = int(request.form.get("count", "5"))
+    except (TypeError, ValueError):
+        count = 5
 
-        if not 1 <= count <= 10:
-            flash("Choose between 1 and 10 questions.")
-            return render_template("index.html")
+    if not topic:
+        flash("Please enter a quiz topic.")
+        return render_template("index.html")
 
-        try:
-            questions = generate_questions(topic, count)
-        except Exception:
-            app.logger.exception("Quiz generation failed")
-            flash("Could not generate the quiz. Check your API key and try again.")
-            return render_template("index.html")
+    if len(topic) > 200:
+        flash("The topic must be 200 characters or fewer.")
+        return render_template("index.html")
 
-        session["topic"] = topic
-        session["questions"] = questions
-        session.pop("results", None)
-        return redirect(url_for("quiz"))
+    if count not in (5, 10):
+        flash("Choose 5 or 10 questions.")
+        return render_template("index.html")
 
-    return render_template("index.html")
+    try:
+        questions = generate_questions(topic, count)
+    except Exception:
+        app.logger.exception("Quiz generation failed")
+        flash("Could not generate the quiz. Check the app settings and try again.")
+        return render_template("index.html")
+
+    session.clear()
+    session["topic"] = topic
+    session["questions"] = questions
+
+    return redirect(url_for("quiz"))
 
 
 @app.route("/quiz")
 def quiz():
     questions = session.get("questions")
-    if not questions:
+
+    if not isinstance(questions, list) or not questions:
+        flash("Please generate a quiz first.")
         return redirect(url_for("home"))
+
     return render_template(
         "quiz.html",
         topic=session.get("topic", "Quiz"),
@@ -124,14 +140,26 @@ def quiz():
 @app.route("/submit", methods=["POST"])
 def submit():
     questions = session.get("questions")
-    if not questions:
+
+    if not isinstance(questions, list) or not questions:
+        flash("Your quiz session expired. Please start a new quiz.")
         return redirect(url_for("home"))
+
+    selected_answers = []
+
+    for index, question in enumerate(questions):
+        submitted = request.form.getlist(f"question_{index}")
+
+        if len(submitted) != 1 or submitted[0] not in question.get("options", []):
+            flash("Please choose one answer for every question.")
+            return redirect(url_for("quiz"))
+
+        selected_answers.append(submitted[0])
 
     results = []
     score = 0
 
-    for index, question in enumerate(questions):
-        selected = request.form.get(f"question_{index}", "")
+    for question, selected in zip(questions, selected_answers):
         correct = selected == question["answer"]
         if correct:
             score += 1
@@ -144,13 +172,16 @@ def submit():
 
     session["results"] = results
     session["score"] = score
+
     return redirect(url_for("result"))
 
 
 @app.route("/result")
 def result():
     results = session.get("results")
-    if results is None:
+
+    if not isinstance(results, list):
+        flash("Submit a quiz to see your results.")
         return redirect(url_for("home"))
 
     return render_template(
@@ -162,4 +193,4 @@ def result():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG") == "1")
