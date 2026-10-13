@@ -3,69 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Quiz Generator</title>
+  <title>Automatic Quiz</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; padding: 25px 15px; font-family: Arial, sans-serif;
-      background: #f0f4f8; color: #1e293b;
+      margin: 0;
+      padding: 25px 15px;
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1e293b;
     }
+
     .container { max-width: 800px; margin: 30px auto; }
+
     .card {
-      background: white; padding: 25px; margin-bottom: 18px;
-      border-radius: 12px; box-shadow: 0 4px 15px #0000000d;
+      background: #fff;
+      padding: 25px;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px #0000000d;
     }
-    h1 { color: #2563eb; margin-top: 0; }
+
     .home { max-width: 650px; margin: 50px auto; }
-    label.field { display: block; margin: 18px 0 8px; font-weight: bold; }
-    input[type="text"], select {
-      width: 100%; padding: 13px; border: 1px solid #cbd5e1;
-      border-radius: 8px; font-size: 16px; background: white;
+    h1 { margin-top: 0; color: #2563eb; }
+
+    label.field {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: bold;
     }
-    button, .button {
-      display: inline-block; width: 100%; margin-top: 20px; padding: 14px;
-      border: 0; border-radius: 8px; background: #2563eb; color: white;
-      font-size: 17px; font-weight: bold; text-align: center;
-      text-decoration: none; cursor: pointer;
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
     }
-    button:hover, .button:hover { background: #1d4ed8; }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: #1d4ed8; }
+
     .option {
-      display: flex; gap: 10px; padding: 13px; margin: 10px 0;
-      border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+      display: flex;
+      gap: 10px;
+      padding: 13px;
+      margin: 10px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
       line-height: 1.5;
     }
+
     .option:hover { background: #eff6ff; border-color: #93c5fd; }
     .info, .muted { color: #64748b; line-height: 1.7; }
-    .features { margin-top: 25px; padding: 15px; background: #eff6ff; border-radius: 8px; }
+
+    .notice {
+      margin-top: 22px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #eff6ff;
+      line-height: 1.6;
+    }
+
     .score { color: #167443; font-size: 25px; font-weight: bold; }
     .correct { color: #167443; font-weight: bold; }
     .incorrect { color: #d93025; font-weight: bold; }
-    .explanation { padding: 12px; background: #f5f7fa; border-radius: 8px; line-height: 1.5; }
-    footer { margin-top: 25px; text-align: center; color: #64748b; font-size: 13px; }
+
+    .explanation {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f5f7fa;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin-top: 25px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
   <main id="app" class="container"></main>
 
   <script>
-    const questions = [
-      { question: "Which HTML element defines the main heading of a page?", options: ["<head>", "<h1>", "<title>", "<header>"], answer: "<h1>", explanation: "The <h1> element represents the most important heading on a page." },
-      { question: "Which attribute specifies the destination URL of a hyperlink?", options: ["src", "link", "href", "target"], answer: "href", explanation: "The href attribute contains the destination URL for an HTML link." },
-      { question: "Which HTML element is used to display an image?", options: ["<image>", "<img>", "<picture-url>", "<src>"], answer: "<img>", explanation: "The <img> element embeds an image." },
-      { question: "Which language is mainly used to style HTML pages?", options: ["Python", "SQL", "CSS", "Java"], answer: "CSS", explanation: "CSS controls the appearance and layout of HTML elements." },
-      { question: "Which HTML element creates a paragraph?", options: ["<para>", "<p>", "<text>", "<paragraph>"], answer: "<p>", explanation: "The <p> element defines a paragraph of text." },
-      { question: "Which tag creates an unordered list in HTML?", options: ["<ol>", "<li>", "<ul>", "<list>"], answer: "<ul>", explanation: "The <ul> element creates an unordered list." },
-      { question: "Which attribute provides alternative text for an image?", options: ["title", "alt", "name", "description"], answer: "alt", explanation: "The alt attribute provides alternative text for accessibility." },
-      { question: "Which tag is used to create a line break in HTML?", options: ["<break>", "<lb>", "<br>", "<newline>"], answer: "<br>", explanation: "The <br> element inserts a line break." },
-      { question: "Which HTML element creates a numbered list?", options: ["<ul>", "<ol>", "<dl>", "<li>"], answer: "<ol>", explanation: "The <ol> element creates an ordered, numbered list." },
-      { question: "Which tag sets the title shown in the browser tab?", options: ["<meta>", "<head>", "<title>", "<h1>"], answer: "<title>", explanation: "The <title> element defines the document title shown in the browser tab." }
-    ];
+    const topicBanks = {
+      html: {
+        title: "HTML",
+        aliases: ["html", "html5"],
+        questions: [
+          {
+            question: "Which HTML element defines the main heading of a page?",
+            options: ["<head>", "<h1>", "<title>", "<header>"],
+            answer: "<h1>",
+            explanation: "The <h1> element represents the most important heading on a page."
+          },
+          {
+            question: "Which attribute specifies the destination URL of a hyperlink?",
+            options: ["src", "link", "href", "target"],
+            answer: "href",
+            explanation: "The href attribute contains the destination URL for an HTML link."
+          },
+          {
+            question: "Which HTML element is used to display an image?",
+            options: ["<image>", "<img>", "<picture-url>", "<src>"],
+            answer: "<img>",
+            explanation: "The <img> element embeds an image in a page."
+          },
+          {
+            question: "Which HTML element creates a paragraph?",
+            options: ["<para>", "<p>", "<text>", "<paragraph>"],
+            answer: "<p>",
+            explanation: "The <p> element defines a paragraph."
+          },
+          {
+            question: "Which tag creates an unordered list?",
+            options: ["<ol>", "<li>", "<ul>", "<list>"],
+            answer: "<ul>",
+            explanation: "The <ul> element creates an unordered list."
+          }
+        ]
+      },
+
+      python: {
+        title: "Python",
+        aliases: ["python", "py"],
+        questions: [
+          {
+            question: "Which keyword is used to define a function in Python?",
+            options: ["func", "def", "function", "define"],
+            answer: "def",
+            explanation: "Python functions are defined using the def keyword."
+          },
+          {
+            question: "Which data type stores True or False?",
+            options: ["String", "Boolean", "List", "Integer"],
+            answer: "Boolean",
+            explanation: "Boolean values are True or False."
+          },
+          {
+            question: "Which symbol starts a single-line comment in Python?",
+            options: ["//", "#", "<!--", "/*"],
+            answer: "#",
+            explanation: "A hash symbol (#) starts a single-line Python comment."
+          },
+          {
+            question: "Which collection uses key-value pairs?",
+            options: ["Tuple", "Set", "Dictionary", "String"],
+            answer: "Dictionary",
+            explanation: "A Python dictionary stores data as key-value pairs."
+          },
+          {
+            question: "What does len([10, 20, 30]) return?",
+            options: ["2", "3", "10", "30"],
+            answer: "3",
+            explanation: "The len() function returns the number of items in a collection."
+          }
+        ]
+      },
+
+      css: {
+        title: "CSS",
+        aliases: ["css", "stylesheets", "style sheets"],
+        questions: [
+          {
+            question: "Which CSS property changes text color?",
+            options: ["font-style", "text-color", "color", "background"],
+            answer: "color",
+            explanation: "The color property sets the text color."
+          },
+          {
+            question: "Which selector targets an element by its ID?",
+            options: [".", "#", "*", "&"],
+            answer: "#",
+            explanation: "A # selector targets an element by its ID."
+          },
+          {
+            question: "Which property adds space inside an element's border?",
+            options: ["margin", "padding", "spacing", "outline"],
+            answer: "padding",
+            explanation: "Padding is the space between an element's content and its border."
+          },
+          {
+            question: "Which CSS property changes an element's background color?",
+            options: ["background-color", "font-color", "color-fill", "bg"],
+            answer: "background-color",
+            explanation: "The background-color property sets an element's background color."
+          },
+          {
+            question: "Which value makes a flex container?",
+            options: ["position: flex", "display: flex", "flex: display", "layout: flex"],
+            answer: "display: flex",
+            explanation: "The display: flex declaration creates a flex container."
+          }
+        ]
+      },
+
+      javascript: {
+        title: "JavaScript",
+        aliases: ["javascript", "java script", "js"],
+        questions: [
+          {
+            question: "Which keyword declares a block-scoped variable that can be reassigned?",
+            options: ["const", "let", "static", "define"],
+            answer: "let",
+            explanation: "let declares a block-scoped variable that can be reassigned."
+          },
+          {
+            question: "Which method writes a message to the browser console?",
+            options: ["console.log()", "print()", "echo()", "write()"],
+            answer: "console.log()",
+            explanation: "console.log() outputs a message to the browser console."
+          },
+          {
+            question: "Which value represents the intentional absence of a value?",
+            options: ["none", "null", "empty", "undefinedonly"],
+            answer: "null",
+            explanation: "null is commonly used to represent an intentional absence of a value."
+          },
+          {
+            question: "Which symbol is used for strict equality?",
+            options: ["=", "==", "===", "!="],
+            answer: "===",
+            explanation: "The === operator compares values without converting their types."
+          },
+          {
+            question: "Which method adds an item to the end of an array?",
+            options: ["push()", "pop()", "shift()", "join()"],
+            answer: "push()",
+            explanation: "The push() method adds one or more items to the end of an array."
+          }
+        ]
+      }
+    };
 
     const app = document.getElementById("app");
     let activeQuiz = [];
-    let quizTopic = "";
+    let activeTopic = "";
 
-    function addText(parent, tag, text, className) {
+    function addText(parent, tag, text, className = "") {
       const element = document.createElement(tag);
       element.textContent = text;
       if (className) element.className = className;
@@ -73,37 +264,92 @@
       return element;
     }
 
-    function showHome() {
-      app.innerHTML = `
-        <section class="card home">
-          <h1 style="text-align:center">Automatic AI Quiz</h1>
-          <p class="muted" style="text-align:center">
-            Choose a topic, take a quiz, and check your score.
-          </p>
-          <form id="quiz-form">
-            <label class="field" for="topic">Quiz topic</label>
-            <input id="topic" type="text" maxlength="100" placeholder="Example: HTML" required>
-            <label class="field" for="count">Number of questions</label>
-            <select id="count">
-              <option value="5">5 Questions</option>
-              <option value="10">10 Questions</option>
-            </select>
-            <button type="submit">Start Quiz</button>
-          </form>
-          <div class="features">
-            <strong>About</strong>
-            <p>This GitHub Pages version uses built-in sample questions. AI generation requires a server.</p>
-          </div>
-          <footer>Python Programming Internship Project</footer>
-        </section>`;
+    function findTopic(input) {
+      const normalized = input.trim().toLowerCase();
 
-      document.getElementById("quiz-form").addEventListener("submit", event => {
+      return Object.values(topicBanks).find(topic =>
+        topic.aliases.some(alias =>
+          normalized === alias || normalized.startsWith(alias + " ")
+        )
+      );
+    }
+
+    function shuffle(items) {
+      const shuffled = [...items];
+
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      return shuffled;
+    }
+
+    function showHome() {
+      app.replaceChildren();
+
+      const section = document.createElement("section");
+      section.className = "card home";
+
+      const title = addText(section, "h1", "Automatic Quiz");
+      title.style.textAlign = "center";
+
+      const intro = addText(
+        section,
+        "p",
+        "Enter a topic to get a quiz with questions for that subject.",
+        "muted"
+      );
+      intro.style.textAlign = "center";
+
+      const form = document.createElement("form");
+      form.id = "quiz-form";
+
+      const label = document.createElement("label");
+      label.className = "field";
+      label.htmlFor = "topic";
+      label.textContent = "Quiz topic";
+      form.appendChild(label);
+
+      const input = document.createElement("input");
+      input.id = "topic";
+      input.type = "text";
+      input.maxLength = 100;
+      input.placeholder = "Try HTML, Python, CSS, or JavaScript";
+      input.required = true;
+      form.appendChild(input);
+
+      const button = document.createElement("button");
+      button.type = "submit";
+      button.textContent = "Start Quiz";
+      form.appendChild(button);
+
+      form.addEventListener("submit", event => {
         event.preventDefault();
-        quizTopic = document.getElementById("topic").value.trim() || "General Knowledge";
-        const count = Number(document.getElementById("count").value);
-        activeQuiz = [...questions].sort(() => Math.random() - 0.5).slice(0, count);
+
+        const topic = findTopic(input.value);
+
+        if (!topic) {
+          alert("Please enter HTML, Python, CSS, or JavaScript.");
+          input.focus();
+          return;
+        }
+
+        activeTopic = topic.title;
+        activeQuiz = shuffle(topic.questions);
         showQuiz();
       });
+
+      section.appendChild(form);
+
+      const notice = document.createElement("div");
+      notice.className = "notice";
+      notice.textContent =
+        "This GitHub Pages version has built-in questions for HTML, Python, CSS, and JavaScript. New AI-generated questions require a backend server.";
+      section.appendChild(notice);
+
+      addText(section, "footer", "Choose a topic to begin.");
+      app.appendChild(section);
     }
 
     function showQuiz() {
@@ -111,12 +357,12 @@
 
       const header = document.createElement("section");
       header.className = "card";
-      addText(header, "h1", `${quizTopic} Quiz`);
-      addText(header, "p", `Questions: ${activeQuiz.length} · Built-in sample questions`, "info");
-      addText(header, "p", "Select one answer for each question and submit your quiz.");
+      addText(header, "h1", `${activeTopic} Quiz`);
+      addText(header, "p", `Answer all ${activeQuiz.length} questions.`, "info");
       app.appendChild(header);
 
       const form = document.createElement("form");
+
       activeQuiz.forEach((question, index) => {
         const section = document.createElement("section");
         section.className = "card";
@@ -125,32 +371,37 @@
         question.options.forEach(option => {
           const label = document.createElement("label");
           label.className = "option";
+
           const radio = document.createElement("input");
           radio.type = "radio";
           radio.name = `question_${index}`;
           radio.value = option;
           radio.required = true;
+
           label.append(radio, document.createTextNode(option));
           section.appendChild(label);
         });
+
         form.appendChild(section);
       });
 
-      const button = document.createElement("button");
-      button.type = "submit";
-      button.textContent = "Submit Quiz";
-      form.appendChild(button);
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.textContent = "Submit Quiz";
+      form.appendChild(submit);
+
       form.addEventListener("submit", event => {
         event.preventDefault();
         showResults(new FormData(form));
       });
+
       app.appendChild(form);
     }
 
     function showResults(formData) {
       app.replaceChildren();
-      let score = 0;
 
+      let score = 0;
       activeQuiz.forEach((question, index) => {
         if (formData.get(`question_${index}`) === question.answer) score++;
       });
@@ -158,27 +409,37 @@
       const summary = document.createElement("section");
       summary.className = "card";
       addText(summary, "h1", "Quiz Results");
-      addText(summary, "h2", quizTopic);
+      addText(summary, "h2", activeTopic);
       addText(summary, "p", `Score: ${score} / ${activeQuiz.length}`, "score");
-      const percentage = Math.round(score / activeQuiz.length * 100);
+
+      const percentage = Math.round((score / activeQuiz.length) * 100);
       addText(summary, "p", `Percentage: ${percentage}%`);
-      addText(summary, "p", percentage >= 80 ? "Excellent work! Keep it up." :
-        percentage >= 50 ? "Good effort! Keep practising." : "Keep learning and try again!");
+      addText(
+        summary,
+        "p",
+        percentage >= 80
+          ? "Excellent work!"
+          : percentage >= 50
+            ? "Good effort. Keep practising!"
+            : "Keep learning and try again!"
+      );
       app.appendChild(summary);
 
       activeQuiz.forEach((question, index) => {
         const selected = formData.get(`question_${index}`);
         const section = document.createElement("section");
         section.className = "card";
+
         addText(section, "h3", `${index + 1}. ${question.question}`);
         addText(section, "p", `Your answer: ${selected || "Not answered"}`);
         addText(section, "p", `Correct answer: ${question.answer}`);
-        addText(section, "p", selected === question.answer ? "Correct answer!" : "Incorrect answer.",
-          selected === question.answer ? "correct" : "incorrect");
-        const explanation = document.createElement("div");
-        explanation.className = "explanation";
-        explanation.textContent = `Explanation: ${question.explanation}`;
-        section.appendChild(explanation);
+        addText(
+          section,
+          "p",
+          selected === question.answer ? "Correct answer!" : "Incorrect answer.",
+          selected === question.answer ? "correct" : "incorrect"
+        );
+        addText(section, "div", `Explanation: ${question.explanation}`, "explanation");
         app.appendChild(section);
       });
 
