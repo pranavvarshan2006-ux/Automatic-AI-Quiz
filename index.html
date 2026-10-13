@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Quiz Generator</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 25px 15px; font-family: Arial, sans-serif;
+      background: #f0f4f8; color: #1e293b;
+    }
+    .container { max-width: 800px; margin: 30px auto; }
+    .card {
+      background: white; padding: 25px; margin-bottom: 18px;
+      border-radius: 12px; box-shadow: 0 4px 15px #0000000d;
+    }
+    h1 { color: #2563eb; margin-top: 0; }
+    .home { max-width: 650px; margin: 50px auto; }
+    label.field { display: block; margin: 18px 0 8px; font-weight: bold; }
+    input[type="text"], select {
+      width: 100%; padding: 13px; border: 1px solid #cbd5e1;
+      border-radius: 8px; font-size: 16px; background: white;
+    }
+    button, .button {
+      display: inline-block; width: 100%; margin-top: 20px; padding: 14px;
+      border: 0; border-radius: 8px; background: #2563eb; color: white;
+      font-size: 17px; font-weight: bold; text-align: center;
+      text-decoration: none; cursor: pointer;
+    }
+    button:hover, .button:hover { background: #1d4ed8; }
+    .option {
+      display: flex; gap: 10px; padding: 13px; margin: 10px 0;
+      border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+      line-height: 1.5;
+    }
+    .option:hover { background: #eff6ff; border-color: #93c5fd; }
+    .info, .muted { color: #64748b; line-height: 1.7; }
+    .features { margin-top: 25px; padding: 15px; background: #eff6ff; border-radius: 8px; }
+    .score { color: #167443; font-size: 25px; font-weight: bold; }
+    .correct { color: #167443; font-weight: bold; }
+    .incorrect { color: #d93025; font-weight: bold; }
+    .explanation { padding: 12px; background: #f5f7fa; border-radius: 8px; line-height: 1.5; }
+    footer { margin-top: 25px; text-align: center; color: #64748b; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main id="app" class="container"></main>
+
+  <script>
+    const questions = [
+      { question: "Which HTML element defines the main heading of a page?", options: ["<head>", "<h1>", "<title>", "<header>"], answer: "<h1>", explanation: "The <h1> element represents the most important heading on a page." },
+      { question: "Which attribute specifies the destination URL of a hyperlink?", options: ["src", "link", "href", "target"], answer: "href", explanation: "The href attribute contains the destination URL for an HTML link." },
+      { question: "Which HTML element is used to display an image?", options: ["<image>", "<img>", "<picture-url>", "<src>"], answer: "<img>", explanation: "The <img> element embeds an image." },
+      { question: "Which language is mainly used to style HTML pages?", options: ["Python", "SQL", "CSS", "Java"], answer: "CSS", explanation: "CSS controls the appearance and layout of HTML elements." },
+      { question: "Which HTML element creates a paragraph?", options: ["<para>", "<p>", "<text>", "<paragraph>"], answer: "<p>", explanation: "The <p> element defines a paragraph of text." },
+      { question: "Which tag creates an unordered list in HTML?", options: ["<ol>", "<li>", "<ul>", "<list>"], answer: "<ul>", explanation: "The <ul> element creates an unordered list." },
+      { question: "Which attribute provides alternative text for an image?", options: ["title", "alt", "name", "description"], answer: "alt", explanation: "The alt attribute provides alternative text for accessibility." },
+      { question: "Which tag is used to create a line break in HTML?", options: ["<break>", "<lb>", "<br>", "<newline>"], answer: "<br>", explanation: "The <br> element inserts a line break." },
+      { question: "Which HTML element creates a numbered list?", options: ["<ul>", "<ol>", "<dl>", "<li>"], answer: "<ol>", explanation: "The <ol> element creates an ordered, numbered list." },
+      { question: "Which tag sets the title shown in the browser tab?", options: ["<meta>", "<head>", "<title>", "<h1>"], answer: "<title>", explanation: "The <title> element defines the document title shown in the browser tab." }
+    ];
+
+    const app = document.getElementById("app");
+    let activeQuiz = [];
+    let quizTopic = "";
+
+    function addText(parent, tag, text, className) {
+      const element = document.createElement(tag);
+      element.textContent = text;
+      if (className) element.className = className;
+      parent.appendChild(element);
+      return element;
+    }
+
+    function showHome() {
+      app.innerHTML = `
+        <section class="card home">
+          <h1 style="text-align:center">Automatic AI Quiz</h1>
+          <p class="muted" style="text-align:center">
+            Choose a topic, take a quiz, and check your score.
+          </p>
+          <form id="quiz-form">
+            <label class="field" for="topic">Quiz topic</label>
+            <input id="topic" type="text" maxlength="100" placeholder="Example: HTML" required>
+            <label class="field" for="count">Number of questions</label>
+            <select id="count">
+              <option value="5">5 Questions</option>
+              <option value="10">10 Questions</option>
+            </select>
+            <button type="submit">Start Quiz</button>
+          </form>
+          <div class="features">
+            <strong>About</strong>
+            <p>This GitHub Pages version uses built-in sample questions. AI generation requires a server.</p>
+          </div>
+          <footer>Python Programming Internship Project</footer>
+        </section>`;
+
+      document.getElementById("quiz-form").addEventListener("submit", event => {
+        event.preventDefault();
+        quizTopic = document.getElementById("topic").value.trim() || "General Knowledge";
+        const count = Number(document.getElementById("count").value);
+        activeQuiz = [...questions].sort(() => Math.random() - 0.5).slice(0, count);
+        showQuiz();
+      });
+    }
+
+    function showQuiz() {
+      app.replaceChildren();
+
+      const header = document.createElement("section");
+      header.className = "card";
+      addText(header, "h1", `${quizTopic} Quiz`);
+      addText(header, "p", `Questions: ${activeQuiz.length} · Built-in sample questions`, "info");
+      addText(header, "p", "Select one answer for each question and submit your quiz.");
+      app.appendChild(header);
+
+      const form = document.createElement("form");
+      activeQuiz.forEach((question, index) => {
+        const section = document.createElement("section");
+        section.className = "card";
+        addText(section, "h3", `${index + 1}. ${question.question}`);
+
+        question.options.forEach(option => {
+          const label = document.createElement("label");
+          label.className = "option";
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = `question_${index}`;
+          radio.value = option;
+          radio.required = true;
+          label.append(radio, document.createTextNode(option));
+          section.appendChild(label);
+        });
+        form.appendChild(section);
+      });
+
+      const button = document.createElement("button");
+      button.type = "submit";
+      button.textContent = "Submit Quiz";
+      form.appendChild(button);
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        showResults(new FormData(form));
+      });
+      app.appendChild(form);
+    }
+
+    function showResults(formData) {
+      app.replaceChildren();
+      let score = 0;
+
+      activeQuiz.forEach((question, index) => {
+        if (formData.get(`question_${index}`) === question.answer) score++;
+      });
+
+      const summary = document.createElement("section");
+      summary.className = "card";
+      addText(summary, "h1", "Quiz Results");
+      addText(summary, "h2", quizTopic);
+      addText(summary, "p", `Score: ${score} / ${activeQuiz.length}`, "score");
+      const percentage = Math.round(score / activeQuiz.length * 100);
+      addText(summary, "p", `Percentage: ${percentage}%`);
+      addText(summary, "p", percentage >= 80 ? "Excellent work! Keep it up." :
+        percentage >= 50 ? "Good effort! Keep practising." : "Keep learning and try again!");
+      app.appendChild(summary);
+
+      activeQuiz.forEach((question, index) => {
+        const selected = formData.get(`question_${index}`);
+        const section = document.createElement("section");
+        section.className = "card";
+        addText(section, "h3", `${index + 1}. ${question.question}`);
+        addText(section, "p", `Your answer: ${selected || "Not answered"}`);
+        addText(section, "p", `Correct answer: ${question.answer}`);
+        addText(section, "p", selected === question.answer ? "Correct answer!" : "Incorrect answer.",
+          selected === question.answer ? "correct" : "incorrect");
+        const explanation = document.createElement("div");
+        explanation.className = "explanation";
+        explanation.textContent = `Explanation: ${question.explanation}`;
+        section.appendChild(explanation);
+        app.appendChild(section);
+      });
+
+      const again = document.createElement("button");
+      again.textContent = "Take Another Quiz";
+      again.addEventListener("click", showHome);
+      app.appendChild(again);
+    }
+
+    showHome();
+  </script>
+</body>
+</html>
